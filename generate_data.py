@@ -4,6 +4,8 @@ from matplotlib import pyplot as plt
 import scipy
 import argparse
 import utils as ut
+from tqdm import trange
+from scipy.io import savemat
 
 def main(molecule, noise, Tmax, overlap, dt, num_trajs):
     np.random.seed(999)
@@ -17,7 +19,9 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
         data = scipy.io.loadmat(f'./data/{molecule}4000.mat')
     psiHF = data['psiHF']
     E = data['E']
-    Et = ut.lam2lamt(E, E[0], E[-1])
+    Et = ut.lam2lamt(E, E[0] - 0.2, E[-1] + 0.2)
+    #import pdb; pdb.set_trace()
+    #Et = E / 50
     
     # Generate the reference state
     phi = ut.generate_phi(overlap, len(Et))
@@ -26,13 +30,14 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
 
     # Save the noiseless data
     noiseless_filename = f'noiseless_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}.npy'
+    #savemat(noiseless_filename, {'dataS': dataS})
     with open(noiseless_filename, 'wb') as f:
         np.save(f, dataS)
 
     # Generate the noisy data
     tdataS = []
-    for i in range(num_trajs):
-        ndataS = (dataS + noise * np.random.randn(Tmax) + 1j * noise * np.random.randn(Tmax)).real
+    for i in trange(num_trajs):
+        ndataS = (dataS + noise * np.random.randn(Tmax) + 1j * noise * np.random.randn(Tmax))
         clipped = np.clip(ndataS, -1, 1)
         # We know the value at time t = 0 is 1
         clipped[0] = 1.0  
@@ -41,6 +46,7 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
         tdataS = tdataS[0].T
     # Save the noisy time series
     noisy_filename = f'noisy_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}.npy'
+    #savemat(noisy_filename, {'dataS': tdataS})
     with open(noisy_filename, 'wb') as f:
         np.save(f, tdataS)
 

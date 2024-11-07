@@ -5,7 +5,7 @@ if nargin < 3, tol = 1e-6; end
 
 %% Hankel matrix
 k = length(data);
-X = make_hankel(data,floor(k/2 + 1),ceil(k/2));
+X = make_hankel(data,floor(1/3 * k) ,ceil(2/3 * k));
 
 %% (shifted) data matrices
 X1 = X(:,1:end-1);

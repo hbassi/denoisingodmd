@@ -8,7 +8,7 @@ from tqdm import trange
 # Generate noiseless s(t) data via eigenexpansion
 def generate_samples(E, psi0, dt=1, nb=100):
     S = np.zeros(nb, dtype=np.complex128)
-    for j in trange(nb):
+    for j in range(nb):
         S[j] = np.sum(np.abs(psi0)**2 * np.exp(-1j * E * j * dt))
     return S
 
@@ -16,7 +16,7 @@ def generate_samples(E, psi0, dt=1, nb=100):
 # Generate noiseless s(t) or any derivatives using functional form
 def generate_samples_der(E, psi0, dt=1, nb=100, n=1):
     S = np.zeros(nb, dtype=np.complex128)
-    for j in trange(nb): 
+    for j in range(nb): 
         S[j] = np.sum(np.abs(psi0)**2 * (-1j * E)**n * np.exp(-1j * E * j * dt))
     return S
 
@@ -37,3 +37,15 @@ def generate_phi(overlap, N):
     phi[1:] = np.sqrt((1 - phi[0]**2) / (N - 1))
     return phi
 
+# Use zero padding and FFT to estimate dominant frequency
+def specest(data, numpad):
+    n = len(data)
+    # Zeropad the sequence
+    x = np.concatenate([data, np.zeros(n*numpad)])
+    N = len(x)
+    # FFT
+    xhat = scipy.fft.fftshift(scipy.fft.fft(x))
+    freq = np.linspace(-np.pi, np.pi, N)
+    # Retrieve most dominant frequency
+    ind = np.argsort(np.abs(xhat))
+    return freq[ind[-1]]

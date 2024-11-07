@@ -18,7 +18,7 @@ Tmax = p.Results.Tmax;
 dt = p.Results.dt;
 
 fun = @dmd;
-step = 10;
+step = 1;
 datatype = 'r';   % r: real, i: imaginary, c: complex
 noisetype = 'r';  % r: real, i: imaginary, c: complex
 savedata = 1;
@@ -39,7 +39,9 @@ elseif strcmp(molecule,'H6')
 else
     error('Wrong molecule!');
 end
-Et = lam2lamt(E,E(1),E(end));  % convert to [-pi/4,pi/4]
+Et = lam2lamt(E,E(1) - 0.2, E(end) + 0.2);  % convert to [-pi/4,pi/4]
+%Et = E/100;
+
 
 if overlap == -1
     [dataH,dataS] = generate_samples(Et,psiHF,dt,Tmax);
@@ -64,12 +66,14 @@ elseif strcmpi(datatype,'i')
    dataS = imag(dataS);
 end
 
+data = load('./noisy_data/denoised_dataS_Cr2_noise=0.1_Tmax=1000_overlap=0.2_dt=1.mat');
+dataS = data.dataS.';
+
 %% run
 % Use the empty list for denoising (denoised trajectories are loaded in during run_compare), and dataS for vanilla
 [lamt,t,svs,bnds] = run_compare(dataH,dataS,dt,fun,tol,Tmax,step);
-lam = lamt2lam(lamt,E(1),E(end));  % convert back from [-pi/4,pi/4]
-
-
+lam = lamt2lam(lamt,E(1) - 0.2,E(end) +0.2);  % convert back from [-pi/4,pi/4]
+%lam = lamt * 100;
 %% save
 if savedata
     if overlap == -1
@@ -91,6 +95,6 @@ elseif isequal(fun,@mp),    mytitle = ['Matrix Pencil Method: ',mytitle];
 elseif isequal(fun,@vqpe),  mytitle = ['VQPE: ',mytitle];
 elseif isequal(fun,@uvqpe), mytitle = ['Unitary VQPE: ',mytitle];
 end
-save_plot_data(t, lam, tol, E, [molecule, '-n', num2str(noise), '-', overlap_str, '-tol', tol_str, '-Tmax', num2str(Tmax), '-dt', num2str(dt), '-_multi_traj_real_plot_data_test.mat']);
+save_plot_data(t, lam, tol, E, [molecule, '-n', num2str(noise), '-', overlap_str, '-tol', tol_str, '-Tmax', num2str(Tmax), '-dt', num2str(dt), '-_fourier_denoised_complex_ff_left_right.mat']);
 %save_plot_data(t, lam, tol, E, [molecule, '-n', num2str(noise), '-', overlap_str, '-tol', tol_str, '-Tmax', num2str(Tmax), '-dt', num2str(dt), '-_real_plot_data.mat']);
 %plot_compare(t, lam, tol, E, mytitle, [0, Tmax], [1e-6, 1]);
