@@ -49,3 +49,64 @@ def specest(data, numpad):
     # Retrieve most dominant frequency
     ind = np.argsort(np.abs(xhat))
     return freq[ind[-1]]
+
+#Helper function for data Hankelization
+def make_hankel(data, m, n):
+    return hankel(data[:m], data[m-1:m+n-1])
+    
+# DMD
+def dmd(data, dt, tol=1e-6):
+    k = len(data)
+    X = make_hankel(data, int(np.floor(k / 3) + 1), int(np.ceil(2 / 3 * k)))
+
+    X1 = X[:, :-1]
+    X2 = X[:, 1:]
+
+    U, S, Vh = svd(X1, full_matrices=False)
+    V = Vh.conj().T
+
+    r = np.sum(S > tol * S[0])
+    U = U[:, :r]
+    S = S[:r]
+    V = V[:, :r]
+
+    Atilde = U.conj().T @ X2 @ V / S
+    mu = eig(Atilde)[0]
+    omega = np.log(mu) / dt
+
+    return omega
+
+
+#Helper function to run DMD for various time
+def run_compare(dataS, dt, tol=[1e-1, 1e-2, 1e-3], Tmax=500, step=10):
+    t = np.arange(20, Tmax + 1, step)
+    lam = np.inf * np.ones((len(t), len(tol)))
+    
+    for i in trange(len(t)):
+        for j in range(len(tol)):
+            omega = dmd(dataS[:t[i]], dt, tol[j])
+            lam[i, j] = -np.max(np.imag(omega))
+            
+    return lam, t
+
+
+def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savename=''):
+    plt.figure()
+    marker = '*ods'
+    lgnd = []
+
+    for i in range(len(tol)):
+        mark = marker[i % len(marker)]
+        plt.semilogy(t, np.abs(lam[:, i] - E[0]), mark, label=f'tol = {tol[i]}')
+    
+    plt.plot([0, t[-1]], [1e-3, 1e-3], ':k')
+    plt.legend()
+    plt.xlabel('# timesteps')
+    plt.ylabel('absolute error')
+    if mytitle:
+        plt.title(mytitle)
+    if xlimits:
+        plt.xlim(xlimits)
+    if ylimits:
+        plt.ylim(ylimits)
+    plt.show()
