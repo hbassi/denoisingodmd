@@ -18,10 +18,8 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs, numpad):
         data = scipy.io.loadmat(f'./data/{molecule}4000.mat')
     psiHF = data['psiHF']
     E = data['E']
-    Et = ut.lam2lamt(E, E[0] + 0.2, E[-1] - 0.2)
-    # E_center = E - (E.min() + E.max())/2
-    # Et = E_center / np.abs(E_center).max()
-    #Et = E / 170
+    Et = ut.lam2lamt(E, E[0] - 0.2, E[-1] + 0.2)
+    
     # Generate the reference state
     phi = ut.generate_phi(overlap, len(Et))
     print('generated phi')
