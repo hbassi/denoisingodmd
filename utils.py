@@ -64,7 +64,7 @@ def dmd(data, dt, tol=1e-6):
 
     U, S, Vh = svd(X1, full_matrices=False)
     V = Vh.conj().T
-
+   
     r = np.sum(S > tol * S[0])
     U = U[:, :r]
     S = S[:r]
@@ -109,4 +109,4 @@ def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savenam
         plt.xlim(xlimits)
     if ylimits:
         plt.ylim(ylimits)
-    plt.show()
+    plt.savefig('./figures/'+savename)

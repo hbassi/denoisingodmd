@@ -19,17 +19,20 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
         data = scipy.io.loadmat(f'./data/{molecule}4000.mat')
     psiHF = data['psiHF']
     E = data['E']
-    Et = ut.lam2lamt(E, E[0] - 0.2, E[-1] + 0.2)
-    #import pdb; pdb.set_trace()
-    #Et = E / 50
+    Et = ut.lam2lamt(E, E[0] - 0.2 , E[-1] + 0.2)
+    #Et = E / 100
     
     # Generate the reference state
-    phi = ut.generate_phi(overlap, len(Et))
+    if overlap == -1:
+        # Use the Hartree-Fock reference state (overlap with GS approx 0.72)
+        phi = psiHF
+    else:
+        phi = ut.generate_phi(overlap, len(Et))
     print('generated phi')
     dataS = ut.generate_samples_der(Et, phi, dt, Tmax, n=0)
 
     # Save the noiseless data
-    noiseless_filename = f'noiseless_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}.npy'
+    noiseless_filename = f'./data/noiseless_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}_ff=0.2_left_right.npy'
     #savemat(noiseless_filename, {'dataS': dataS})
     with open(noiseless_filename, 'wb') as f:
         np.save(f, dataS)
@@ -45,7 +48,7 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
     if num_trajs == 1:
         tdataS = tdataS[0].T
     # Save the noisy time series
-    noisy_filename = f'noisy_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}.npy'
+    noisy_filename = f'./data/noisy_dataS_{molecule}_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}_ff=0.2_left_right.npy'
     #savemat(noisy_filename, {'dataS': tdataS})
     with open(noisy_filename, 'wb') as f:
         np.save(f, tdataS)
