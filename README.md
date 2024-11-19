@@ -8,5 +8,5 @@ python run_odmd.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 -
 
 
 ## Fourier denoising (for now):
-in the notebook fourier_denoising.ipynb (TODO: port to script). Run the ODMD command above with the flag --baseline False
+in the notebook fourier_denoising.ipynb (TODO: port to script). After saving the denoised trajectory from the notebook, run the ODMD command above with the flag --baseline False
 
