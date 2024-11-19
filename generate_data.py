@@ -21,10 +21,10 @@ def main(molecule, noise, Tmax, overlap, dt, num_trajs):
     E = data['E']
     Et = ut.lam2lamt(E, E[0] - 0.2 , E[-1] + 0.2)
     #Et = E / 100
-    
+
     # Generate the reference state
     if overlap == -1:
-        # Use the Hartree-Fock reference state (overlap with GS approx 0.72)
+        # Use the Hartree-Fock reference state (overlap with ground state approx 0.72)
         phi = psiHF
     else:
         phi = ut.generate_phi(overlap, len(Et))

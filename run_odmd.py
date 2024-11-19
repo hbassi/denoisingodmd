@@ -16,18 +16,18 @@ def main(molecule, noise, Tmax, overlap, dt, tol, step, fudge_factor=0, option='
     if baseline and noise != 0:
         print('Using noisy data')
         dataS = np.load('./data/'+noisy_filename)
-        savename = f'baseline_odmd_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}'
+        savename = f'baseline_odmd_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}_real'
     elif baseline and noise == 0:
         print('Using noiseless data')
         dataS = np.load('./data/'+noiseless_filename)
-        savename = f'baseline_odmd_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}'
+        savename = f'baseline_odmd_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}_real'
     else:
         print('Using denoised data')
         dataS = np.load('./data/'+denoised_filename)
-        savename = f'fourier_denoised_odmd_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}'
+        savename = f'fourier_denoised_odmd_1mode_noise={noise}_Tmax={Tmax}_overlap={overlap}_dt={dt}_real'
     
     # Run ODMD
-    lamt,t = ut.run_compare(dataS,dt,tol,Tmax,step)
+    lamt,t = ut.run_compare(dataS.real,dt,tol,Tmax,step)
     
     # Load in the spectrum to recast the results for plotting
     if molecule == 'Cr2':
@@ -49,7 +49,7 @@ def main(molecule, noise, Tmax, overlap, dt, tol, step, fudge_factor=0, option='
         E=E,  
         mytitle=molecule + ' (noise = '+ str(noise) + ')',
         xlimits=(20, Tmax),
-        ylimits=[1e-8,10],
+        ylimits=[1e-7,1e-1],
         savename=savename
     )
 if __name__ == "__main__":

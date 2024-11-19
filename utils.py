@@ -14,7 +14,7 @@ def generate_samples(E, psi0, dt=1, nb=100):
 
 
 # Generate noiseless s(t) or any derivatives using functional form
-def generate_samples_der(E, psi0, dt=1, nb=100, n=1):
+def generate_samples_der(E, psi0, dt=1, nb=100, n=0):
     S = np.zeros(nb, dtype=np.complex128)
     for j in range(nb): 
         S[j] = np.sum(np.abs(psi0)**2 * (-1j * E)**n * np.exp(-1j * E * j * dt))
@@ -41,7 +41,7 @@ def generate_phi(overlap, N):
 def specest(data, numpad):
     n = len(data)
     # Zeropad the sequence
-    x = np.concatenate([data, np.zeros(n*numpad)])
+    x = np.concatenate([data, np.zeros(numpad)])
     N = len(x)
     # FFT
     xhat = scipy.fft.fftshift(scipy.fft.fft(x))
@@ -57,7 +57,7 @@ def make_hankel(data, m, n):
 # DMD
 def dmd(data, dt, tol=1e-6):
     k = len(data)
-    X = make_hankel(data, int(np.floor(k / 3) + 1), int(np.ceil(2 / 3 * k)))
+    X = make_hankel(data, int(np.floor(k / 3)), int(np.ceil(2 / 3 * k)))
 
     X1 = X[:, :-1]
     X2 = X[:, 1:]
@@ -94,14 +94,17 @@ def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savenam
     plt.figure()
     marker = '*ods'
     lgnd = []
-
+    abs_errs = []
     for i in range(len(tol)):
         mark = marker[i % len(marker)]
-        plt.semilogy(t, np.abs(lam[:, i] - E[0]), mark, label=f'tol = {tol[i]}')
+        err = np.abs(lam[:, i] - E[0])
+        abs_errs.append(err)
+        plt.semilogy(t, err, mark, label=f'tol = {tol[i]}')
+
     
     plt.plot([0, t[-1]], [1e-3, 1e-3], ':k')
     plt.legend()
-    plt.xlabel('# timesteps')
+    plt.xlabel('# observables')
     plt.ylabel('absolute error')
     if mytitle:
         plt.title(mytitle)
@@ -109,4 +112,8 @@ def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savenam
         plt.xlim(xlimits)
     if ylimits:
         plt.ylim(ylimits)
-    plt.savefig('./figures/'+savename)
+    plt.savefig('./figures/'+savename+'_test.png')
+    # Plot error results
+    with open('./figures/'+savename+'_ODMD.npy', 'wb') as f:
+        np.save(f, abs_errs)
+    plt.show()
