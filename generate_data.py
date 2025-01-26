@@ -60,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--noise", type=float, default=0.1, help="Noise level.")
     parser.add_argument("--Tmax", type=int, default=1000, help="Final time.")
     parser.add_argument("--overlap", type=float, default=0.2, help="Overlap with the GS.")
-    parser.add_argument("--dt", type=int, default=1, help="Time step.")
+    parser.add_argument("--dt", type=float, default=1.0, help="Time step.")
     parser.add_argument("--num_trajs", type=int, default=1, help="Number of noisy trajectories.")
     
     args = parser.parse_args()

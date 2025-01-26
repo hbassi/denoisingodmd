@@ -38,7 +38,7 @@ def generate_phi(overlap, N):
     return phi
 
 # Use zero padding and FFT to estimate dominant frequency
-def specest(data, numpad):
+def specest(data, numpad, delta_t):
     n = len(data)
     # Zeropad the sequence
     x = np.concatenate([data, np.zeros(numpad)])
@@ -48,7 +48,11 @@ def specest(data, numpad):
     freq = np.linspace(-np.pi, np.pi, N)
     # Retrieve most dominant frequency
     ind = np.argsort(np.abs(xhat))
-    return freq[ind[-1]]
+    is_symmetric = np.allclose(np.abs(xhat), np.abs(xhat)[::-1], atol=1e-4)
+    if is_symmetric:
+        return freq[min(ind[-1], ind[-2])] / delta_t
+    else:
+        return freq[ind[-1]] / delta_t
 
 #Helper function for data Hankelization
 def make_hankel(data, m, n):
@@ -57,7 +61,7 @@ def make_hankel(data, m, n):
 # DMD
 def dmd(data, dt, tol=1e-6):
     k = len(data)
-    X = make_hankel(data, int(np.floor(k / 3)), int(np.ceil(2 / 3 * k)))
+    X = make_hankel(data, int(np.floor(k / 2)), int(np.ceil(1 / 2 * k)))
 
     X1 = X[:, :-1]
     X2 = X[:, 1:]
@@ -76,18 +80,37 @@ def dmd(data, dt, tol=1e-6):
 
     return omega
 
-
+#  #omega = dmd(dataS[:t[i]], dt, tol[j])
 #Helper function to run DMD for various time
 def run_compare(dataS, dt, tol=[1e-1, 1e-2, 1e-3], Tmax=500, step=10):
     t = np.arange(20, Tmax + 1, step)
-    lam = np.inf * np.ones((len(t), len(tol)))
-    
+    lam = np.inf * np.ones((len(t), len(tol), 2))  # Store two largest values
+    cond_nums = np.inf * np.ones((len(t), len(tol)))
     for i in trange(len(t)):
         for j in range(len(tol)):
-            omega = dmd(dataS[:t[i]], dt, tol[j])
-            lam[i, j] = -np.max(np.imag(omega))
-            
+            omega = MODMD(dataS[:, :t[i]], dt, tol[j])
+            imag_parts = np.imag(omega)  # Extract imaginary parts
+
+            # Sort in descending order and take the two largest values
+            sorted_imag = np.sort(imag_parts)[::-1]
+            top_two = sorted_imag[:2] if len(sorted_imag) >= 2 else [sorted_imag[0], np.nan]
+
+            lam[i, j, 0] = -top_two[0]  # First largest
+            lam[i, j, 1] = -top_two[1]  # Second largest
+
     return lam, t
+
+# #Helper function to run DMD for various time
+# def run_compare(dataS, dt, tol=[1e-1, 1e-2, 1e-3], Tmax=500, step=10):
+#     t = np.arange(20, Tmax + 1, step)
+#     lam = np.inf * np.ones((len(t), len(tol)))
+    
+#     for i in trange(len(t)):
+#         for j in range(len(tol)):
+#             omega = dmd(dataS[:t[i]], dt, tol[j])
+#             lam[i, j] = -np.max(np.imag(omega))
+            
+#     return lam, t
 
 
 def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savename=''):
@@ -97,11 +120,11 @@ def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savenam
     abs_errs = []
     for i in range(len(tol)):
         mark = marker[i % len(marker)]
-        err = np.abs(lam[:, i] - E[0])
+        err = np.abs(lam[:, i, 0] - E[0])
         abs_errs.append(err)
         plt.semilogy(t, err, mark, label=f'tol = {tol[i]}')
 
-    
+    print('Errors: ', abs_errs)
     plt.plot([0, t[-1]], [1e-3, 1e-3], ':k')
     plt.legend()
     plt.xlabel('# observables')
@@ -112,8 +135,99 @@ def plot_compare(t, lam, tol, E, mytitle='', xlimits=None, ylimits=None, savenam
         plt.xlim(xlimits)
     if ylimits:
         plt.ylim(ylimits)
-    plt.savefig('./figures/'+savename+'_test.png')
+
     # Plot error results
+    
+    plt.savefig('./figures/'+savename+'_test_E0.png')
     with open('./figures/'+savename+'_ODMD.npy', 'wb') as f:
         np.save(f, abs_errs)
-    plt.show()
+    plt.close()
+    
+#     plt.figure()
+#     marker = '*ods'
+#     lgnd = []
+#     abs_errs = []
+#     for i in range(len(tol)):
+#         mark = marker[i % len(marker)]
+#         err = np.abs(lam[:, i, 1] - E[1])
+#         abs_errs.append(err)
+#         plt.semilogy(t, err, mark, label=f'tol = {tol[i]}')
+
+#     print('Errors: ', abs_errs)
+#     plt.plot([0, t[-1]], [1e-3, 1e-3], ':k')
+#     plt.legend()
+#     plt.xlabel('# observables')
+#     plt.ylabel('absolute error')
+#     if mytitle:
+#         plt.title(mytitle)
+#     if xlimits:
+#         plt.xlim(xlimits)
+#     if ylimits:
+#         plt.ylim(ylimits)
+   
+    
+#     plt.plot([0, t[-1]], [1e-3, 1e-3], ':k')
+#     plt.legend()
+#     plt.xlabel('# observables')
+#     plt.ylabel('absolute error')
+#     if mytitle:
+#         plt.title(mytitle)
+#     if xlimits:
+#         plt.xlim(xlimits)
+#     if ylimits:
+#         plt.ylim(ylimits)
+#     plt.savefig('./figures/'+savename+'_test_E1.png')
+    
+def BHankel(data):
+    """
+    Construct a block Hankel matrix from input data.
+    Parameters:
+    - data: Input data matrix (rows are variables, columns are time snapshots)
+    - m: Block size for the Hankel matrix
+    Returns:
+    - H: Block Hankel matrix
+    """
+    rows, cols = data.shape
+    m = cols//2
+    # Initialize the Hankel matrix
+    X = np.zeros((rows * m, cols - m), dtype=complex)
+    # Loop through each column and fill the matrix
+    for i in range(cols - m):
+        temp = data[:, i:i + m].T
+        X[:, i] = temp.ravel()  # Flatten temp and store in X
+    return X
+
+
+def MODMD(data, dt, tol=1e-8, eigid=0):
+    """
+    Dynamic Mode Decomposition (DMD) with SVD truncation
+    Parameters:
+    - data: Input data matrix (each column is a snapshot in time)
+    - dt: Time between data snapshots
+    - tol: Tolerance for rank truncation
+    - eigid: Number of eigenvalues to return
+    Returns:
+    - E_approx: Approximate sorted imaginary part of eigenvalues
+    """
+    # Shifted data matrices (block Hankel)
+    
+    X = BHankel(data)
+    X1 = X[:, :-1]
+    X2 = X[:, 1:]
+    # SVD of X1
+    U, S, Vh = svd(X1, full_matrices=False)
+    # Rank truncation
+    r = np.sum(S > tol * S[0])
+    U = U[:, :r]
+    S = S[:r]
+    V = Vh[:r, :].conj().T
+    S_inv = np.diag(1/S)
+    # DMD computation
+    Atilde = np.dot(np.dot(U.T, X2), np.dot(V, S_inv))
+   
+    # Eigenvalue computation
+    mu = eig(Atilde)[0]
+    omega = np.log(mu) / dt
+    #Etilde = np.sort(-np.imag(omega))
+    # Return the approximate eigenvalues
+    return omega #Etilde[eigid]

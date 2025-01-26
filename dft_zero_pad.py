@@ -45,35 +45,44 @@ def main(molecule, noise, Tmax, overlap, dt, numpad, option='', denoised=False):
     # Save absolute errors of estimated GSE and ground truth GSE
     errors = []
     gt_gse = E[0]
+    gt_max = E[-1]
+    eigenvalues = []
      # Generate individual time series up until Tmax
-    for i in trange(20, Tmax + 1):
+    for i in trange(25, Tmax + 1, 2):
     
         
         # Use FFT with zero-padding to estimate GSE
-        gse_estimate = ut.specest(clipped[:i].real, numpad)
+        gse_estimate = ut.specest(clipped[:i].real, numpad * i , dt)
         gse_estimate_cast = ut.lamt2lam(gse_estimate, E[0] - 0.2, E[-1] + 0.2)
+        eigenvalues.append(gse_estimate_cast.item())
         # Compute the absolute error 
         #relative_error = np.abs(np.abs(gse_estimate) - np.abs(gt_gse.item())) / np.abs(gt_gse.item())
         abs_error = np.abs(np.abs(gse_estimate_cast) - np.abs(gt_gse.item()))
+        abs_error_max = np.abs(np.abs(gse_estimate_cast) - np.abs(gt_max.item()))
         print('GSE Estimate: ', gse_estimate_cast)
         print('GT GSE: ' , gt_gse.item())
+        print('GT Emax: ' , gt_max.item())
         #print('Relative error: ', relative_error)
         print('Absolute error: ', abs_error)
+        print('Max AE: ', abs_error_max)
         print('================================================')
         
         #errors.append(relative_error)
         errors.append(abs_error)
     
     # Plot error results
-    with open('./figures/'+savename+'_padding='+str(numpad)+'_ff_left_right_absolute_errors_real_test1.npy', 'wb') as f:
+    with open('./figures/'+savename+'_padding='+str(numpad)+'_ff_left_right_absolute_errors_real_dt='+str(dt)+'odd_symmetry.npy', 'wb') as f:
         np.save(f, errors)
-    plt.semilogy(np.arange(20, Tmax + 1), errors, '*')
-    plt.plot([20, Tmax], [1e-3, 1e-3], 'k:')
+    f.close()
+    with open('./figures/'+savename+'_padding='+str(numpad)+'_ff_left_right_eigenvalues_real_dt='+str(dt)+'odd_symmetry.npy', 'wb') as f:
+        np.save(f, eigenvalues)
+    plt.semilogy(np.arange(25, Tmax + 1, 2) , errors, '*')
+    plt.plot([21 , Tmax + 1], [1e-3, 1e-3], 'k:')
     plt.xlabel('# observables')
     plt.ylabel('absolute error')
-    plt.ylim([1e-7, 1e-1])
+    #plt.ylim([1e-7, 1e-1])
     plt.title('Numpad = '+str(numpad) + ', noise = ' + str(noise))
-    plt.savefig('./figures/'+savename+'_gse_errors_numpad='+str(numpad)+'_padding_ff_left_right_real_test1.png')
+    plt.savefig('./figures/'+savename+'_gse_errors_numpad='+str(numpad)+'_padding_ff_left_right_real_dt='+str(dt)+'odd_symmetry.png')
         
     
 
@@ -84,7 +93,7 @@ if __name__ == "__main__":
     parser.add_argument("--noise", type=float, default=0.1, help="Noise level.")
     parser.add_argument("--Tmax", type=int, default=1000, help="Final time.")
     parser.add_argument("--overlap", type=float, default=0.2, help="Overlap with the GS.")
-    parser.add_argument("--dt", type=int, default=1, help="Time step.")
+    parser.add_argument("--dt", type=float, default=1, help="Time step.")
     parser.add_argument("--numpad", type=int, default=1, help="Length of zero-padding to include in FFT")
     parser.add_argument("--option", type=str, default='', help="Which kind of energy casting.")
     parser.add_argument("--denoised", type=lambda x: str(x).lower() in ["true", "1", "t", "y", "yes"], default=True, help="Denoised data from FD or not")

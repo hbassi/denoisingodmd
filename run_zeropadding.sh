@@ -2,10 +2,10 @@
 
 # Default values for parameters
 MOLECULE="Cr2"
-NOISE=0.1
-TMAX=1000
+NOISE=1.0
+TMAX=1500
 OVERLAP=0.2
-DT=1
+DT=1.0
 OPTION="ff=0.2_left_right"
 DENOISED="False"
 
@@ -23,7 +23,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
-NUMPAD_VALUES=(512 1024 2048 4096 8192)
+NUMPAD_VALUES=(0 4 8 16 32 64)
 
 # Loop over numpad values and run the script
 for numpad in "${NUMPAD_VALUES[@]}"
