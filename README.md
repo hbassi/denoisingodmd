@@ -2,7 +2,7 @@
 Hardeep Bassi, Yizhi Shen, Harish S. Bhat, and Roel Van Beeumen. Please direct any questions to `hbassi2@ucmerced.edu`.
 
 ## Generate the noisy and noiseless data 
-Specify a `molecule`, `noise` parameter for the standard deviation of the statistical noise from finite shots, final time evolution `Tmax`, `overlap` with the ground state $p_0$, timestep `dt` $\Delta t$, `num_trajs` the amount of trajectories, and the depolarizing noise strength parameter `$gamma$`. Set $\gamma$ = -1.0 if depolarizing noise is not desired. An example would be:
+Specify a `molecule`, `noise` parameter for the standard deviation of the statistical noise from finite shots, final time evolution `Tmax`, `overlap` with the ground state $p_0$, timestep `dt` $\Delta t$, `num_trajs` the amount of trajectories, and the depolarizing noise strength parameter `gamma`. Set $\gamma$ = -1.0 if depolarizing noise is not desired. An example would be:
 
 `python generate_data.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 --num_trajs 1 --gamma -1.0`
 
