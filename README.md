@@ -24,4 +24,4 @@ Run `run_zeropadding.sh` from the command line and adjust the parameters as need
 ## All files above use `utils.py` for specific implementation of the algorithms presented in the paper
 
 ## Figures
-Inside of the `figures` folder, `create_plots_FD.ipynb`, `create_plots_SE.ipynb`, and `heatmap.ipynb` can be used to re-create the Figures from the manuscript. All relevant data has been provided in the `data` and `figures` folders.
+In the `src` folder, `bound_final.ipynb`, `depolarizing_noise_example.ipynb`, and `depolarizing_noise_inset_example.ipynb`, and inside of the `figures` folder, `create_plots_FD.ipynb`, `create_plots_SE.ipynb`, and `heatmap.ipynb` can be used to re-create the Figures from the manuscript.  All relevant data has been provided in the `data` and `figures` folders.
