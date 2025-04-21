@@ -1,15 +1,23 @@
-# denoisingodmd
+# Code to accompany "From noisy observables to accurate ground‑state energies: a  quantum-classical signal subspace approach with denoising"
+Hardeep Bassi, Yizhi Shen, Harish S. Bhat, and Roel Van Beeumen. Please direct any questions to `hbassi2@ucmerced.edu`.
 
-## Generate the data via:
-python generate_data.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 --num_trajs 1
+## Generate the noisy and noiseless data 
+Specify a molecule, noise parameter for the standard deviation of the statistical noise from finite shots, final time evolution $T_{\text{max}}$, overlap with the ground state $p_0$, timestep $\Delta t$, the amount of trajectories, and the depolarizing noise strength parameter $\gamma$. Set $\gamma$ = -1.0 if depolarizing noise is not desired. An example would be:
 
-## Run ODMD via:
-python run_odmd.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 --tol 0.8 0.1 0.01 0.001 --step 1 --fudge_factor 0.2 --option ff=0.2_left_right --baseline True
+`python generate_data.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 --num_trajs 1 --gamma -1.0`
 
+## Fourier denoising data generation
+Specify the desired filepaths of the data wished to be denoised and the thresholding parameters within the script and run:
 
-## Fourier denoising (for now):
-in the notebook fourier_denoising.ipynb (TODO: port to script). After saving the denoised trajectory from the notebook, run the ODMD command above with the flag --baseline False
+`python fourier_denoising.py`
+
+## Run ODMD  
+Set baseline to True or False depending on if baseline ODMD is desired, and stacked to True of False depending on if FDODMD is desired. An example would be:
+
+`python run_odmd.py --molecule Cr2 --noise 0.1 --Tmax 1000 --overlap 0.2 --dt 1 --tol 0.8 0.1 0.01 0.001 --step 1 --fudge_factor 0.2 --option ff=0.2_left_right --baseline False --stacked True --depolarized -1.0`
 
 ## Zero-padding/FFT
+Run `run_zeropadding.sh` from the command line and adjust the parameters as needed.
 
-Run run_zeropadding.sh from the command line and adjust internal parameters as needed. If multiplicative padding, modify line 44 in utils to be n * numpad. If additive padding, leave as is (TODO: fix this to not be hard coded)
+## Figures
+Inside of the `figures` folder, `create_plots_FD.ipynb`, `create_plots_SE.ipynb`, and `heatmap.ipynb` can be used to re-create the Figures from the manuscript. All relevant data has been provided in the `data` and `figures` folders.
