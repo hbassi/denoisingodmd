@@ -11,7 +11,7 @@ Specify the desired filepaths of the noisy data generated from `generate_data.py
 
 `python fourier_denoising.py`
 
-Following this, use `stack_data.ipynb` to assemble the stacked dataset from whichever denoising parameters are desired.
+Following this, use `stack_data.ipynb` to assemble the stacked dataset from whichever denoising parameters are desired. For a visualization process of the denoising procedure, `fourier_denoising.ipynb` can be used.
 
 ## Run ODMD  
 Use the same parameters as used for data generation and set `baseline` to `True` or `False` depending on if baseline ODMD is desired, and `stacked` to `True` or `False` depending on if FDODMD is desired. An example would be:
